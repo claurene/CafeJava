@@ -2,12 +2,6 @@ import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-/*
-5 boissons
-+- sucre
-persistance des ingrédients/boissons => save dans un fichier
-*/
-
 public class Main {
 
     // Fonctions
@@ -44,7 +38,7 @@ public class Main {
         } else if (cafe==0 & lait==0 & chocolat==0 & sucre==0) {
             System.out.printf("Une boisson doit contenir au moins un ingrédient !");
         } else {
-            // Vérifier si le nom de la boisson est unique TODO: à optimiser ??
+            // Vérifier si le nom de la boisson est unique
             for (Boisson b : liste) {
                if (nom.equals(b.getNom())) {
                    System.out.printf("Une boisson comporte déjà ce nom là.");
@@ -80,6 +74,25 @@ public class Main {
         liste.remove(num);
         Boisson.decreaseCount();
         System.out.printf("La boisson \""+boisson.toString()+"\" a bien été supprimée de la machine.");
+    }
+
+    // Plus ou moins de sucre
+    public static int ajuster_sucre(int nb_sucres) {
+        System.out.println("Veuillez sélectionner le nombre de sucres à ajouter/supprimer [Actuellement "+nb_sucres+" sucres]\n(+ pour ajouter, - pour supprimer)");
+        Scanner sc_sucre = new Scanner(System.in);
+        // L'utilisateur doit entrer un nombre positif ou négatif pour ajuster son nombre de sucres
+        int add_sucre=0;
+        try {
+            add_sucre = sc_sucre.nextInt();
+        } catch (InputMismatchException e) {
+            System.out.println("Votre choix est invalide. Le nombre de sucres ne sera pas modifié.");
+        }
+        nb_sucres+=add_sucre;
+        if (nb_sucres<0) {
+            nb_sucres=0;
+        }
+        System.out.println("Votre boisson contiendra "+nb_sucres+" sucres.");
+        return nb_sucres;
     }
 
     // Programme principal
@@ -156,6 +169,9 @@ public class Main {
                     // On récupère la boisson choisie
                     Boisson boisson = liste_boissons.get(choix_boisson-1);
 
+                    // On demande à l'utilisateur si il veut ajuster le nombre de sucres dans sa boisson
+                    int nbsucres = ajuster_sucre(boisson.getSucre());
+
                     // On lui demande de payer : il peut ajouter plusieurs pièces
                     int prix = boisson.getPrix();
                     int monnaie=0;
@@ -179,12 +195,12 @@ public class Main {
                         // On prépare la boisson
                         System.out.printf("Préparation de la boisson en cours...\n");
                         // On vérifie que le stock d'ingrédients est suffisant
-                        if (stock.getCafe() >= boisson.getCafe() && stock.getLait() >= boisson.getLait() && stock.getChocolat() >= boisson.getChocolat() && stock.getSucre() >= boisson.getSucre()) {
+                        if (stock.getCafe() >= boisson.getCafe() && stock.getLait() >= boisson.getLait() && stock.getChocolat() >= boisson.getChocolat() && stock.getSucre() >= nbsucres) {
                             // Préparer la boisson : enlever les ingrédients du stock
                             stock.addCafe(-boisson.getCafe());
                             stock.addLait(-boisson.getLait());
                             stock.addChocolat(-boisson.getChocolat());
-                            stock.addSucre(-boisson.getSucre());
+                            stock.addSucre(-nbsucres);
                             System.out.printf("Voici votre boisson \"" + boisson.getNom() + "\".\n");
                             // Rendre le solde
                             if (monnaie - prix > 0) {
@@ -204,7 +220,7 @@ public class Main {
 
                 case 2: // Ajouter une boisson
                     // On vérifie que l'utilisateur peut ajouter une boisson
-                    if (Boisson.getCount()>=3) {
+                    if (Boisson.getCount()>=5) {
                         System.out.printf("La machine contient déjà 3 choix de boisson. Veuillez en supprimer une avant d'en ajouter une nouvelle.");
                     } else {
                         // On demande les infos nécéssaires
