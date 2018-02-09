@@ -1,3 +1,4 @@
+import java.io.*;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
@@ -35,7 +36,7 @@ public class Main {
     public static void ajouter_boisson(ArrayList<Boisson> liste, String nom,int prix,int cafe,int lait,int chocolat,int sucre) {
         if (prix<=0 || cafe<0 || lait<0 || chocolat<0 || sucre<0){
             System.out.printf("Veuillez renseigner des valeurs positives correctes pour le prix et les ingrédients.");
-        } else if (cafe==0 & lait==0 & chocolat==0 & sucre==0) {
+        } else if (cafe==0 & lait==0 & chocolat==0) {
             System.out.printf("Une boisson doit contenir au moins un ingrédient !");
         } else {
             // Vérifier si le nom de la boisson est unique
@@ -55,7 +56,7 @@ public class Main {
     public static void modifier_boisson(Boisson boisson,int prix,int cafe,int lait,int chocolat,int sucre) {
         if (prix<=0 || cafe<0 || lait<0 || chocolat<0 || sucre<0){
             System.out.printf("Veuillez renseigner des valeurs positives correctes pour le prix et les ingrédients.");
-        } else if (cafe==0 & lait==0 & chocolat==0 & sucre==0) {
+        } else if (cafe==0 & lait==0 & chocolat==0) {
             System.out.printf("Une boisson doit contenir au moins un ingrédient !");
         } else {
             boisson.setPrix(prix);
@@ -105,17 +106,59 @@ public class Main {
         // On initialise la liste des boissons (vide)
         ArrayList<Boisson> liste_boissons = new ArrayList();
 
-        /* Données de test */
-        // On utilise les méthodes de classe pour ne pas avoir de printf
-        stock.addCafe(2);
-        stock.addLait(2);
-        stock.addSucre(2);
-        stock.addChocolat(2);
+        // On charge les données de la machine
 
-        liste_boissons.add(new Boisson("Café simple",1,2,0,0,0));
-        liste_boissons.add(new Boisson("Cappucino",2,2,1,0,1));
-        liste_boissons.add(new Boisson("Chocolat chaud",2,0,1,2,1));
-        /*              */
+        FileInputStream in = null;
+        ObjectInputStream ois = null;
+
+        // Chargement du stock
+
+        try {
+            in = new FileInputStream("stock.txt");
+            try {
+                ois = new ObjectInputStream(in);
+                stock = (Stock) ois.readObject();
+            } catch (StreamCorruptedException e) {
+                // Fichier corrompu
+            } catch (Exception e ) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    ois.close();
+                } catch (IOException e) {
+                }
+            }
+        } catch (FileNotFoundException e) {
+            // Fichier stock non trouvé : aucun ingrédient ajouté dans la machine
+        }
+
+        // Chargement des boissons
+        try {
+            in = new FileInputStream("boissons.txt");
+            try {
+                ois = new ObjectInputStream(in);
+                while(true) {
+                    try {
+                        liste_boissons.add((Boisson)ois.readObject());
+                        Boisson.increaseCount();
+                    } catch (EOFException e){
+                        break;
+                    }
+                }
+
+            } catch (StreamCorruptedException e) {
+                // Fichier corrompu
+            }  catch (Exception e ) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    ois.close();
+                } catch (IOException e) {
+                }
+            }
+        } catch (FileNotFoundException e) {
+            // Fichier boisson non trouvé : aucune boisson ajoutée dans la machine
+        }
 
         // Affichage des options de la machine
         System.out.printf("Bienvenue à CaféJava ! Nous proposons les services suivants :\n\n");
@@ -221,7 +264,7 @@ public class Main {
                 case 2: // Ajouter une boisson
                     // On vérifie que l'utilisateur peut ajouter une boisson
                     if (Boisson.getCount()>=5) {
-                        System.out.printf("La machine contient déjà 3 choix de boisson. Veuillez en supprimer une avant d'en ajouter une nouvelle.");
+                        System.out.printf("La machine contient déjà 5 choix de boisson. Veuillez en supprimer une avant d'en ajouter une nouvelle.");
                     } else {
                         // On demande les infos nécéssaires
                         System.out.printf("Veuillez renseigner les différentes informations sur la boisson à ajouter :");
@@ -378,5 +421,50 @@ public class Main {
                     System.out.println("Votre choix n'est pas valide. Veuillez choisir une option parmis celles proposées :\n");
             }
         }while(machine);
+
+        // Sauvegarde de la machine
+
+        FileOutputStream out=null;
+        ObjectOutputStream oos=null;
+
+        // Sauvegarde du stock
+        try {
+            out = new FileOutputStream("stock.txt");
+        } catch (FileNotFoundException e) {
+            // Fichier non trouvé : création du fichier
+        }
+
+        try {
+            oos = new ObjectOutputStream(out);
+            oos.writeObject(stock);
+            oos.flush();
+        } catch (IOException e) {
+        } finally {
+            try {
+                oos.close();
+            } catch (IOException e) {
+            }
+        }
+
+        // Sauvegarde des boissons
+        try {
+            out = new FileOutputStream("boissons.txt");
+        } catch (FileNotFoundException e) {
+            // Fichier non trouvé : création du fichier
+        }
+
+        try {
+            oos = new ObjectOutputStream(out);
+            for (Boisson b : liste_boissons) {
+                oos.writeObject(b);
+            }
+            oos.flush();
+        } catch (IOException e) {
+        } finally {
+            try {
+                oos.close();
+            } catch (IOException e) {
+            }
+        }
     }
 }

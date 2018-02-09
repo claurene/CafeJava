@@ -1,4 +1,6 @@
-public class Stock {
+import java.io.Serializable;
+
+public class Stock implements Serializable {
     // Représente l'inventaire de la machine à café : contient le nombre de cafés, laits, chocolats et sucres stockés.
     private int cafe;
     private int lait;

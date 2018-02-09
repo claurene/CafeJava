@@ -1,4 +1,6 @@
-public class Boisson {
+import java.io.Serializable;
+
+public class Boisson implements Serializable{
     // Représente une boisson de la machine à café, composée d'un nom, un prix et le nombre d'ingrédients correspondant.
     private String nom;
     private int prix;
@@ -37,6 +39,11 @@ public class Boisson {
     // Décrémenter le nombre de boisson (lors d'une suppression)
     public static void decreaseCount() {
         Boisson.count--;
+    }
+
+    // Incrémenter le nombre de boisson (lors du chargement des boissons)
+    public static void increaseCount() {
+        Boisson.count++;
     }
 
     // Getters et Setters
